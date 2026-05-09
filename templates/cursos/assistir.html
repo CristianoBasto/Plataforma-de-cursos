@@ -1,0 +1,181 @@
+{% extends 'base/base.html' %}
+{% block title %}{{ aula.titulo }} - EduPlay{% endblock %}
+
+{% block extra_css %}
+<style>
+.player-layout { display: grid; grid-template-columns: 1fr 320px; min-height: calc(100vh - 64px); }
+.player-main { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+.video-wrap { background: #000; aspect-ratio: 16/9; width: 100%; position: relative; }
+.video-wrap iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
+.video-placeholder { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text2); }
+.video-placeholder i { font-size: 4rem; margin-bottom: 1rem; color: var(--accent); }
+.player-info { padding: 1.5rem; border-bottom: 1px solid var(--border); }
+.player-info h1 { font-size: 1.3rem; margin-bottom: 1rem; }
+.player-nav { display: flex; gap: .75rem; align-items: center; flex-wrap: wrap; }
+.comentarios-wrap { padding: 1.5rem; flex: 1; }
+.sidebar { overflow-y: auto; max-height: calc(100vh - 64px); position: sticky; top: 64px; }
+.sidebar-header { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+.sidebar-header h3 { font-size: .95rem; }
+.progresso-info { font-size: .8rem; color: var(--text2); margin-top: .4rem; }
+.modulo-label { padding: .6rem 1rem; background: var(--bg3); font-size: .8rem; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; }
+.aula-sidebar { padding: .75rem 1rem; display: flex; align-items: center; gap: .65rem; font-size: .88rem; border-bottom: 1px solid var(--border); text-decoration: none; color: var(--text); transition: background .15s; }
+.aula-sidebar:hover { background: var(--bg2); }
+.aula-sidebar.ativa { background: rgba(255,107,53,.1); border-left: 3px solid var(--accent); }
+.check { width: 18px; height: 18px; border: 2px solid var(--border); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: .65rem; flex-shrink: 0; }
+.check.done { background: #5cb85c; border-color: #5cb85c; color: #fff; }
+.btn-concluir { background: #1a3a1a; color: #5cb85c; border: 1px solid #2a5a2a; }
+.btn-concluir:hover { background: #5cb85c; color: #fff; }
+.btn-desmarcar { background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+@media(max-width:900px){ .player-layout { grid-template-columns: 1fr; } .sidebar { max-height: 400px; position: static; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="player-layout">
+    <div class="player-main">
+
+        <!-- VIDEO -->
+        <div class="video-wrap">
+            {% if aula.video_url %}
+                <iframe src="{{ aula.video_url }}" allowfullscreen allow="autoplay"></iframe>
+            {% else %}
+                <div class="video-placeholder">
+                    <i class="fa fa-play-circle"></i>
+                    <p>Vídeo não disponível</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- INFO E NAVEGAÇÃO -->
+        <div class="player-info">
+            <h1>{{ aula.titulo }}</h1>
+            {% if aula.descricao %}<p style="color:var(--text2);font-size:.9rem;margin-bottom:1rem;line-height:1.6">{{ aula.descricao }}</p>{% endif %}
+
+            <div class="player-nav">
+                {% if aula_anterior %}
+                <a href="{% url 'assistir_aula_id' curso.slug aula_anterior.id %}" class="btn btn-outline btn-sm">
+                    <i class="fa fa-arrow-left"></i> Anterior
+                </a>
+                {% endif %}
+
+                <form method="post" action="{% url 'marcar_concluida' aula.id %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm {% if progresso_obj.concluida %}btn-desmarcar{% else %}btn-concluir{% endif %}">
+                        <i class="fa fa-check"></i>
+                        {% if progresso_obj.concluida %}Desmarcar conclusão{% else %}Marcar como concluída{% endif %}
+                    </button>
+                </form>
+
+                {% if proxima_aula %}
+                <a href="{% url 'assistir_aula_id' curso.slug proxima_aula.id %}" class="btn btn-primary btn-sm" style="margin-left:auto">
+                    Próxima <i class="fa fa-arrow-right"></i>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- COMENTÁRIOS -->
+        <div class="comentarios-wrap">
+            <h3 style="margin-bottom:1.5rem;font-size:1.1rem"><i class="fa fa-comments"></i> Comentários</h3>
+
+            <form method="post" action="{% url 'comentar_aula' aula.id %}" style="margin-bottom:2rem">
+                {% csrf_token %}
+                <textarea name="texto" class="form-control" rows="3" placeholder="Deixe seu comentário ou dúvida..." style="margin-bottom:.75rem"></textarea>
+                <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-paper-plane"></i> Enviar</button>
+            </form>
+
+            {% for comentario in comentarios %}
+            <div style="margin-bottom:1.5rem">
+                <div style="display:flex;gap:.75rem;align-items:flex-start">
+                    <div class="avatar" style="width:32px;height:32px;font-size:.75rem;flex-shrink:0">
+                        {{ comentario.aluno.first_name|first|upper }}
+                    </div>
+                    <div style="flex:1">
+                        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.3rem;flex-wrap:wrap">
+                            <strong style="font-size:.9rem">{{ comentario.aluno.get_full_name|default:comentario.aluno.username }}</strong>
+                            <span style="font-size:.75rem;color:var(--text2)">{{ comentario.criado_em|date:"d/m/Y H:i" }}</span>
+                            {% if comentario.aluno == request.user %}
+                            <a href="{% url 'deletar_comentario' comentario.id %}" style="margin-left:auto;font-size:.75rem;color:#e74c3c;text-decoration:none">
+                                <i class="fa fa-trash"></i>
+                            </a>
+                            {% endif %}
+                        </div>
+                        <p style="font-size:.9rem;color:var(--text2);line-height:1.6">{{ comentario.texto }}</p>
+                        <button onclick="toggleResposta({{ comentario.id }})" style="background:none;border:none;color:var(--accent);font-size:.8rem;cursor:pointer;padding:0;margin-top:.3rem">
+                            <i class="fa fa-reply"></i> Responder
+                        </button>
+                        <div id="resposta-{{ comentario.id }}" style="display:none;margin-top:.75rem">
+                            <form method="post" action="{% url 'comentar_aula' aula.id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="parent_id" value="{{ comentario.id }}">
+                                <textarea name="texto" class="form-control" rows="2" placeholder="Sua resposta..."></textarea>
+                                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.5rem">Responder</button>
+                            </form>
+                        </div>
+                        {% for resposta in comentario.respostas.all %}
+                        <div style="margin-top:.75rem;padding-left:1rem;border-left:2px solid var(--border);display:flex;gap:.6rem">
+                            <div class="avatar" style="width:26px;height:26px;font-size:.65rem;flex-shrink:0">
+                                {{ resposta.aluno.first_name|first|upper }}
+                            </div>
+                            <div>
+                                <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;flex-wrap:wrap">
+                                    <strong style="font-size:.82rem">{{ resposta.aluno.get_full_name|default:resposta.aluno.username }}</strong>
+                                    <span style="font-size:.72rem;color:var(--text2)">{{ resposta.criado_em|date:"d/m/Y H:i" }}</span>
+                                    {% if resposta.aluno == request.user %}
+                                    <a href="{% url 'deletar_comentario' resposta.id %}" style="font-size:.72rem;color:#e74c3c;text-decoration:none;margin-left:auto">
+                                        <i class="fa fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                                <p style="font-size:.85rem;color:var(--text2)">{{ resposta.texto }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text2);font-size:.9rem">Nenhum comentário ainda. Seja o primeiro!</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h3>{{ curso.titulo }}</h3>
+            <div class="progresso-info">Progresso: {{ progresso_total }}%</div>
+            <div class="progress" style="margin-top:.5rem">
+                <div class="progress-bar" style="width:{{ progresso_total }}%"></div>
+            </div>
+            {% if progresso_total == 100 %}
+            <a href="{% url 'certificado' curso.slug %}" class="btn btn-sm" style="margin-top:.75rem;width:100%;justify-content:center;background:#ffaa00;color:#000;font-weight:600">
+                <i class="fa fa-certificate"></i> Emitir Certificado
+            </a>
+            {% endif %}
+        </div>
+
+        {% for modulo in modulos %}
+        <div class="modulo-label"><i class="fa fa-folder"></i> {{ modulo.titulo }}</div>
+        {% for a in modulo.aulas.all %}
+        <a href="{% url 'assistir_aula_id' curso.slug a.id %}"
+           class="aula-sidebar {% if a.id == aula.id %}ativa{% endif %}">
+            <div class="check {% if a.id in aulas_concluidas %}done{% endif %}">
+                {% if a.id in aulas_concluidas %}<i class="fa fa-check"></i>{% endif %}
+            </div>
+            <span style="flex:1">{{ a.titulo }}</span>
+            <span style="font-size:.75rem;color:var(--text2)">{{ a.duracao_formatada }}</span>
+        </a>
+        {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function toggleResposta(id) {
+    const el = document.getElementById('resposta-' + id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}

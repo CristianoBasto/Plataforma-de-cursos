@@ -1,0 +1,62 @@
+{% extends 'base/base.html' %}
+{% block title %}Cadastro - EduPlay{% endblock %}
+{% block extra_css %}
+<style>
+.auth-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.auth-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; width: 100%; max-width: 480px; }
+.auth-box h1 { font-size: 1.8rem; margin-bottom: .4rem; }
+.auth-box p { color: var(--text2); font-size: .9rem; margin-bottom: 2rem; }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.auth-footer { text-align: center; margin-top: 1.5rem; font-size: .88rem; color: var(--text2); }
+.auth-footer a { color: var(--accent); text-decoration: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-box">
+        <h1>Criar conta</h1>
+        <p>Comece a aprender hoje mesmo, é grátis!</p>
+        <form method="post">
+            {% csrf_token %}
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Nome</label>
+                    {{ form.first_name }}
+                    {% if form.first_name.errors %}<small style="color:#e74c3c">{{ form.first_name.errors.0 }}</small>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Sobrenome</label>
+                    {{ form.last_name }}
+                </div>
+            </div>
+            <div class="form-group">
+                <label>E-mail</label>
+                {{ form.email }}
+            </div>
+            <div class="form-group">
+                <label>Usuário</label>
+                {{ form.username }}
+                {% if form.username.errors %}<small style="color:#e74c3c">{{ form.username.errors.0 }}</small>{% endif %}
+            </div>
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Senha</label>
+                    {{ form.password1 }}
+                    {% if form.password1.errors %}<small style="color:#e74c3c">{{ form.password1.errors.0 }}</small>{% endif %}
+                </div>
+                <div class="form-group">
+                    <label>Confirmar senha</label>
+                    {{ form.password2 }}
+                    {% if form.password2.errors %}<small style="color:#e74c3c">{{ form.password2.errors.0 }}</small>{% endif %}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:.75rem">
+                <i class="fa fa-user-plus"></i> Criar conta
+            </button>
+        </form>
+        <div class="auth-footer">
+            Já tem conta? <a href="{% url 'login' %}">Entrar</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

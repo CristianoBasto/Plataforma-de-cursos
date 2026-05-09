@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SisCurso{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d0d;
+            --bg2: #151515;
+            --bg3: #1e1e1e;
+            --accent: #ff6b35;
+            --accent2: #ffaa00;
+            --text: #f0f0f0;
+            --text2: #999;
+            --border: #2a2a2a;
+            --radius: 12px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+        h1,h2,h3,h4 { font-family: 'Syne', sans-serif; }
+
+        /* NAVBAR */
+        nav { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+        .nav-brand { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: var(--accent); text-decoration: none; }
+        .nav-brand span { color: var(--text); }
+        .nav-links { display: flex; align-items: center; gap: 1.5rem; }
+        .nav-links a { color: var(--text2); text-decoration: none; font-size: 0.9rem; transition: color .2s; }
+        .nav-links a:hover { color: var(--text); }
+        .btn { display: inline-flex; align-items: center; gap: .4rem; padding: .5rem 1.2rem; border-radius: 8px; font-size: .9rem; font-weight: 500; text-decoration: none; cursor: pointer; border: none; transition: all .2s; }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: #ff8255; }
+        .btn-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm { padding: .35rem .9rem; font-size: .82rem; }
+
+        /* MESSAGES */
+        .messages { padding: .75rem 2rem; }
+        .alert { padding: .75rem 1rem; border-radius: 8px; margin-bottom: .5rem; font-size: .9rem; }
+        .alert-success { background: #1a3a1a; color: #5cb85c; border: 1px solid #2a5a2a; }
+        .alert-error { background: #3a1a1a; color: #e74c3c; border: 1px solid #5a2a2a; }
+        .alert-info { background: #1a2a3a; color: #3498db; border: 1px solid #2a3a5a; }
+
+        /* CARDS */
+        .card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; transition: transform .2s, border-color .2s; }
+        .card:hover { transform: translateY(-3px); border-color: var(--accent); }
+
+        /* GRID */
+        .grid-3 { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 2rem; }
+        .section { padding: 4rem 0; }
+
+        /* BADGE */
+        .badge { display: inline-block; padding: .2rem .6rem; border-radius: 4px; font-size: .75rem; font-weight: 600; }
+        .badge-orange { background: rgba(255,107,53,.15); color: var(--accent); }
+        .badge-gold { background: rgba(255,170,0,.15); color: var(--accent2); }
+        .badge-green { background: rgba(92,184,92,.15); color: #5cb85c; }
+
+        /* FOOTER */
+        footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 2rem; text-align: center; color: var(--text2); font-size: .85rem; margin-top: 4rem; }
+
+        /* FORM */
+        .form-group { margin-bottom: 1.2rem; }
+        .form-group label { display: block; margin-bottom: .4rem; font-size: .85rem; color: var(--text2); }
+        .form-control { width: 100%; background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: .65rem 1rem; border-radius: 8px; font-size: .95rem; transition: border-color .2s; }
+        .form-control:focus { outline: none; border-color: var(--accent); }
+
+        /* PROGRESS BAR */
+        .progress { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; }
+        .progress-bar { background: linear-gradient(90deg, var(--accent), var(--accent2)); height: 100%; border-radius: 99px; transition: width .4s; }
+
+        /* AVATAR */
+        .avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 700; font-size: .9rem; color: #fff; flex-shrink: 0; }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<nav>
+    <a class="nav-brand" href="{% url 'home' %}">Sis<span>Play</span></a>
+    <div class="nav-links">
+        <a href="{% url 'lista_cursos' %}"><i class="fa fa-graduation-cap"></i> Cursos</a>
+        {% if user.is_authenticated %}
+            <a href="{% url 'meus_cursos' %}">Meus Cursos</a>
+            <a href="{% url 'perfil' %}">
+                <div class="avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+            </a>
+            <a href="{% url 'logout' %}" class="btn btn-outline btn-sm">Sair</a>
+        {% else %}
+            <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Entrar</a>
+            <a href="{% url 'registro' %}" class="btn btn-primary btn-sm">Cadastrar</a>
+        {% endif %}
+    </div>
+</nav>
+
+{% if messages %}
+<div class="messages">
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
+
+{% block content %}{% endblock %}
+
+<footer>
+    <p>© 2025 SisPlay &mdash; Plataforma de Cursos Online</p>
+</footer>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

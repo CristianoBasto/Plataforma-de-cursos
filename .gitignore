@@ -1,0 +1,58 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.Python
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Ambientes virtuais
+venv/
+env/
+.env/
+.venv/
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.production
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Node (caso use frontend)
+node_modules/
+npm-debug.log
+
+# Distribuição / build
+dist/
+build/
+*.egg-info/
+.eggs/
+
+# Testes
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Migrations (opcional — alguns projetos commitam, outros não)
+# */migrations/
+
+# Certificados e chaves
+*.pem
+*.key

@@ -1,0 +1,36 @@
+{% extends 'base/base.html' %}
+{% block title %}Entrar - EduPlay{% endblock %}
+{% block extra_css %}
+<style>
+.auth-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
+.auth-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; width: 100%; max-width: 420px; }
+.auth-box h1 { font-size: 1.8rem; margin-bottom: .4rem; }
+.auth-box p { color: var(--text2); font-size: .9rem; margin-bottom: 2rem; }
+.auth-footer { text-align: center; margin-top: 1.5rem; font-size: .88rem; color: var(--text2); }
+.auth-footer a { color: var(--accent); text-decoration: none; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+    <div class="auth-box">
+        <h1>Bem-vindo(a)</h1>
+        <p>Entre na sua conta para continuar aprendendo</p>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<small style="color:#e74c3c">{{ field.errors.0 }}</small>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:.75rem">
+                <i class="fa fa-sign-in-alt"></i> Entrar
+            </button>
+        </form>
+        <div class="auth-footer">
+            Não tem conta? <a href="{% url 'registro' %}">Cadastre-se grátis</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

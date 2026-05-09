@@ -1,0 +1,41 @@
+{% extends 'base/base.html' %}
+{% block title %}Perfil - EduPlay{% endblock %}
+{% block extra_css %}
+<style>
+.perfil-wrap { max-width: 600px; margin: 3rem auto; padding: 0 2rem; }
+.perfil-header { display: flex; align-items: center; gap: 1.5rem; margin-bottom: 2.5rem; }
+.perfil-avatar { width: 72px; height: 72px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; color: #fff; flex-shrink: 0; }
+.perfil-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="perfil-wrap">
+    <div class="perfil-header">
+        <div class="perfil-avatar">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+        <div>
+            <h1 style="font-size:1.6rem">{{ user.get_full_name|default:user.username }}</h1>
+            <p style="color:var(--text2);font-size:.9rem">{{ user.email }}</p>
+            <p style="color:var(--text2);font-size:.8rem">Membro desde {{ user.date_joined|date:"d/m/Y" }}</p>
+        </div>
+    </div>
+
+    <div class="perfil-box">
+        <h3 style="margin-bottom:1.5rem">Editar perfil</h3>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<small style="color:#e74c3c">{{ field.errors.0 }}</small>{% endif %}
+            </div>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
+        </form>
+    </div>
+
+    <div style="margin-top:1.5rem;text-align:center">
+        <a href="{% url 'meus_cursos' %}" class="btn btn-outline"><i class="fa fa-graduation-cap"></i> Meus Cursos ({{ matriculas.count }})</a>
+    </div>
+</div>
+{% endblock %}

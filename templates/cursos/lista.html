@@ -1,0 +1,95 @@
+{% extends 'base/base.html' %}
+{% block title %}Cursos - EduPlay{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-header { padding: 3rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; }
+.page-header h1 { font-size: 2.5rem; }
+.filtros { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end; }
+.filtro-group { display: flex; flex-direction: column; gap: .4rem; flex: 1; min-width: 150px; }
+.filtro-group label { font-size: .8rem; color: var(--text2); }
+.filtro-group select, .filtro-group input { background: var(--bg3); border: 1px solid var(--border); color: var(--text); padding: .55rem .85rem; border-radius: 8px; font-size: .9rem; }
+.filtro-group select:focus, .filtro-group input:focus { outline: none; border-color: var(--accent); }
+.curso-card img { width: 100%; height: 170px; object-fit: cover; }
+.no-img { width: 100%; height: 170px; background: linear-gradient(135deg, var(--bg3), var(--border)); display: flex; align-items: center; justify-content: center; color: var(--text2); font-size: 2rem; }
+.curso-card-body { padding: 1.1rem; }
+.curso-card-body h3 { font-size: .95rem; margin: .4rem 0 .4rem; }
+.curso-card-body p { font-size: .82rem; color: var(--text2); margin-bottom: .8rem; line-height: 1.5; }
+.curso-meta { display: flex; gap: .6rem; font-size: .78rem; color: var(--text2); margin-bottom: .6rem; flex-wrap: wrap; }
+.curso-preco { font-size: 1.05rem; font-weight: 700; color: var(--accent); }
+.curso-preco.gratis { color: #5cb85c; }
+.empty { text-align: center; padding: 4rem 2rem; color: var(--text2); }
+.empty i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1>Todos os Cursos</h1>
+        <p style="color:var(--text2);margin-top:.5rem">Encontre o curso ideal para você</p>
+    </div>
+
+    <form method="get" class="filtros">
+        <div class="filtro-group" style="flex:2">
+            <label><i class="fa fa-search"></i> Buscar</label>
+            <input type="text" name="busca" placeholder="Nome do curso..." value="{{ busca|default:'' }}">
+        </div>
+        <div class="filtro-group">
+            <label><i class="fa fa-tag"></i> Categoria</label>
+            <select name="categoria">
+                <option value="">Todas</option>
+                {% for cat in categorias %}
+                <option value="{{ cat.slug }}" {% if categoria_atual == cat.slug %}selected{% endif %}>{{ cat.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filtro-group">
+            <label><i class="fa fa-signal"></i> Nível</label>
+            <select name="nivel">
+                <option value="">Todos</option>
+                <option value="iniciante" {% if nivel_atual == 'iniciante' %}selected{% endif %}>Iniciante</option>
+                <option value="intermediario" {% if nivel_atual == 'intermediario' %}selected{% endif %}>Intermediário</option>
+                <option value="avancado" {% if nivel_atual == 'avancado' %}selected{% endif %}>Avançado</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Filtrar</button>
+    </form>
+
+    {% if cursos %}
+    <div class="grid-3">
+        {% for curso in cursos %}
+        <a href="{% url 'detalhe_curso' curso.slug %}" style="text-decoration:none;color:inherit;">
+            <div class="card curso-card">
+                {% if curso.thumbnail %}
+                    <img src="{{ curso.thumbnail.url }}" alt="{{ curso.titulo }}">
+                {% else %}
+                    <div class="no-img"><i class="fa fa-play-circle"></i></div>
+                {% endif %}
+                <div class="curso-card-body">
+                    {% if curso.categoria %}<span class="badge badge-orange">{{ curso.categoria.nome }}</span>{% endif %}
+                    <span class="badge badge-gold" style="margin-left:.3rem">{{ curso.get_nivel_display }}</span>
+                    <h3>{{ curso.titulo }}</h3>
+                    <p>{{ curso.descricao|truncatechars:75 }}</p>
+                    <div class="curso-meta">
+                        <span><i class="fa fa-user"></i> {{ curso.instrutor.get_full_name|default:curso.instrutor.username }}</span>
+                        <span><i class="fa fa-book"></i> {{ curso.total_aulas }} aulas</span>
+                        <span><i class="fa fa-users"></i> {{ curso.total_alunos }} alunos</span>
+                    </div>
+                    <div class="curso-preco {% if curso.gratuito %}gratis{% endif %}">
+                        {% if curso.gratuito %}✓ Gratuito{% else %}R$ {{ curso.preco }}{% endif %}
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty">
+        <i class="fa fa-search"></i>
+        <p>Nenhum curso encontrado com esses filtros.</p>
+        <a href="{% url 'lista_cursos' %}" class="btn btn-outline" style="margin-top:1rem">Limpar filtros</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
