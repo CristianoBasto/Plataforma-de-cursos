@@ -3,12 +3,21 @@
 {% block extra_css %}
 <style>
 .auth-wrap { min-height: calc(100vh - 64px); display: flex; align-items: center; justify-content: center; padding: 2rem; }
-.auth-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; width: 100%; max-width: 480px; }
+.auth-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; width: 100%; max-width: 500px; }
 .auth-box h1 { font-size: 1.8rem; margin-bottom: .4rem; }
 .auth-box p { color: var(--text2); font-size: .9rem; margin-bottom: 2rem; }
 .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
 .auth-footer { text-align: center; margin-top: 1.5rem; font-size: .88rem; color: var(--text2); }
 .auth-footer a { color: var(--accent); text-decoration: none; }
+.tipo-options { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem; }
+.tipo-option { border: 2px solid var(--border); border-radius: 10px; padding: 1.2rem; cursor: pointer; text-align: center; transition: all .2s; }
+.tipo-option:hover { border-color: var(--accent); }
+.tipo-option input[type=radio] { display: none; }
+.tipo-option.selecionado { border-color: var(--accent); background: rgba(255,107,53,.08); }
+.tipo-option i { font-size: 1.8rem; display: block; margin-bottom: .5rem; color: var(--text2); }
+.tipo-option.selecionado i { color: var(--accent); }
+.tipo-option strong { display: block; font-size: .95rem; }
+.tipo-option span { font-size: .8rem; color: var(--text2); }
 </style>
 {% endblock %}
 {% block content %}
@@ -18,6 +27,25 @@
         <p>Comece a aprender hoje mesmo, é grátis!</p>
         <form method="post">
             {% csrf_token %}
+
+            <div class="form-group">
+                <label style="margin-bottom:.75rem;display:block">Como quer se cadastrar?</label>
+                <div class="tipo-options">
+                    <label class="tipo-option" id="label-aluno">
+                        <input type="radio" name="tipo" value="aluno" checked onchange="selecionarTipo('aluno')">
+                        <i class="fa fa-user-graduate"></i>
+                        <strong>Aluno</strong>
+                        <span>Quero aprender</span>
+                    </label>
+                    <label class="tipo-option" id="label-instrutor">
+                        <input type="radio" name="tipo" value="instrutor" onchange="selecionarTipo('instrutor')">
+                        <i class="fa fa-chalkboard-teacher"></i>
+                        <strong>Instrutor</strong>
+                        <span>Quero ensinar</span>
+                    </label>
+                </div>
+            </div>
+
             <div class="two-col">
                 <div class="form-group">
                     <label>Nome</label>
@@ -59,4 +87,12 @@
         </div>
     </div>
 </div>
+<script>
+function selecionarTipo(tipo) {
+    document.getElementById('label-aluno').classList.remove('selecionado');
+    document.getElementById('label-instrutor').classList.remove('selecionado');
+    document.getElementById('label-' + tipo).classList.add('selecionado');
+}
+document.addEventListener('DOMContentLoaded', () => selecionarTipo('aluno'));
+</script>
 {% endblock %}

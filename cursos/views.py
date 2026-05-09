@@ -15,6 +15,11 @@ def home(request):
 
 
 def lista_cursos(request):
+    # Redireciona instrutor para o painel
+    if request.user.is_authenticated and hasattr(request.user, 'profile') and request.user.profile.is_instrutor():
+        return redirect('instrutor_dashboard')
+    
+    # ... resto do código
     cursos = Curso.objects.filter(publicado=True)
     categoria_slug = request.GET.get('categoria')
     nivel = request.GET.get('nivel')
@@ -132,6 +137,9 @@ def marcar_concluida(request, aula_id):
 
 @login_required
 def meus_cursos(request):
+     # Redireciona instrutor para o painel
+    if hasattr(request.user, 'profile') and request.user.profile.is_instrutor():
+        return redirect('instrutor_dashboard')
     matriculas = Matricula.objects.filter(aluno=request.user, ativa=True).select_related('curso')
     return render(request, 'cursos/meus_cursos.html', {'matriculas': matriculas})
 

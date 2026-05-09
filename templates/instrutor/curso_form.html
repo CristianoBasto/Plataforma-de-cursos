@@ -1,0 +1,154 @@
+{% extends 'base/base.html' %}
+{% block title %}{% if curso %}Editar{% else %}Novo{% endif %} Curso - EduPlay{% endblock %}
+{% block extra_css %}
+<style>
+.form-wrap { max-width: 800px; margin: 2.5rem auto; padding: 0 2rem; }
+.form-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; margin-bottom: 2rem; }
+.form-box h2 { font-size: 1.2rem; margin-bottom: 1.5rem; padding-bottom: .75rem; border-bottom: 1px solid var(--border); }
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.modulo-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; margin-bottom: 1rem; overflow: hidden; }
+.modulo-header { padding: .9rem 1.2rem; display: flex; align-items: center; justify-content: space-between; background: var(--bg2); }
+.aula-item { padding: .7rem 1.2rem; display: flex; align-items: center; gap: .75rem; border-top: 1px solid var(--border); font-size: .88rem; }
+.aula-item span { flex: 1; }
+.toggle-modulo { background: none; border: none; color: var(--text2); cursor: pointer; font-size: .85rem; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="form-wrap">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <h1 style="font-size:1.8rem">{% if curso %}Editar Curso{% else %}Novo Curso{% endif %}</h1>
+        <a href="{% url 'instrutor_dashboard' %}" class="btn btn-outline btn-sm"><i class="fa fa-arrow-left"></i> Voltar</a>
+    </div>
+
+    <div class="form-box">
+        <h2><i class="fa fa-info-circle"></i> Informações do Curso</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>Título do curso</label>
+                <input type="text" name="titulo" class="form-control" value="{{ curso.titulo|default:'' }}" required placeholder="Ex: Python do Zero ao Avançado">
+            </div>
+            <div class="form-group">
+                <label>Descrição</label>
+                <textarea name="descricao" class="form-control" rows="4" required placeholder="Descreva o que o aluno vai aprender...">{{ curso.descricao|default:'' }}</textarea>
+            </div>
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Nível</label>
+                    <select name="nivel" class="form-control">
+                        <option value="iniciante" {% if curso.nivel == 'iniciante' %}selected{% endif %}>Iniciante</option>
+                        <option value="intermediario" {% if curso.nivel == 'intermediario' %}selected{% endif %}>Intermediário</option>
+                        <option value="avancado" {% if curso.nivel == 'avancado' %}selected{% endif %}>Avançado</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Categoria</label>
+                    <select name="categoria" class="form-control">
+                        <option value="">Sem categoria</option>
+                        {% for cat in categorias %}
+                        <option value="{{ cat.id }}" {% if curso.categoria_id == cat.id %}selected{% endif %}>{{ cat.nome }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="two-col">
+                <div class="form-group">
+                    <label>Preço (R$)</label>
+                    <input type="number" name="preco" class="form-control" value="{{ curso.preco|default:'0' }}" step="0.01" min="0">
+                </div>
+                <div class="form-group" style="display:flex;flex-direction:column;justify-content:flex-end">
+                    <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+                        <input type="checkbox" name="gratuito" {% if curso.gratuito %}checked{% endif %}> Curso gratuito
+                    </label>
+                    <label style="display:flex;align-items:center;gap:.5rem;cursor:pointer;margin-top:.75rem">
+                        <input type="checkbox" name="publicado" {% if curso.publicado %}checked{% endif %}> Publicar curso
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Thumbnail</label>
+                <input type="file" name="thumbnail" class="form-control" accept="image/*">
+                {% if curso.thumbnail %}<small style="color:var(--text2)">Atual: {{ curso.thumbnail.name }}</small>{% endif %}
+            </div>
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
+        </form>
+    </div>
+
+    {% if curso %}
+    <!-- MÓDULOS E AULAS -->
+    <div class="form-box">
+        <h2><i class="fa fa-layer-group"></i> Módulos e Aulas</h2>
+
+        {% for modulo in modulos %}
+        <div class="modulo-box">
+            <div class="modulo-header">
+                <strong><i class="fa fa-folder"></i> {{ modulo.titulo }}</strong>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                    <button class="toggle-modulo" onclick="toggleModulo({{ modulo.id }})">
+                        <i class="fa fa-chevron-down"></i>
+                    </button>
+                    <a href="{% url 'instrutor_modulo_deletar' modulo.id %}" class="btn btn-sm" style="background:rgba(231,76,60,.15);color:#e74c3c;border:none;padding:.3rem .6rem" onclick="return confirm('Remover módulo e todas as aulas?')">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </div>
+            </div>
+            <div id="modulo-{{ modulo.id }}">
+                {% for aula in modulo.aulas.all %}
+                <div class="aula-item">
+                    <i class="fa fa-play-circle" style="color:var(--accent)"></i>
+                    <span>{{ aula.titulo }}</span>
+                    <span style="font-size:.78rem;color:var(--text2)">{{ aula.duracao_formatada }}</span>
+                    <a href="{% url 'instrutor_aula_deletar' aula.id %}" style="color:#e74c3c;font-size:.8rem" onclick="return confirm('Remover aula?')">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </div>
+                {% endfor %}
+
+                <!-- Form nova aula -->
+                <div style="padding:1rem;border-top:1px solid var(--border);background:rgba(255,107,53,.03)">
+                    <form method="post" action="{% url 'instrutor_aula_criar' modulo.id %}">
+                        {% csrf_token %}
+                        <p style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem"><i class="fa fa-plus"></i> Nova aula</p>
+                        <div class="two-col" style="gap:.75rem">
+                            <input type="text" name="titulo" class="form-control" placeholder="Título da aula" required style="font-size:.85rem">
+                            <input type="url" name="video_url" class="form-control" placeholder="URL do vídeo (embed)" style="font-size:.85rem">
+                        </div>
+                        <div class="two-col" style="gap:.75rem;margin-top:.5rem">
+                            <input type="number" name="duracao" class="form-control" placeholder="Duração (seg)" style="font-size:.85rem">
+                            <input type="number" name="ordem" class="form-control" placeholder="Ordem" style="font-size:.85rem">
+                        </div>
+                        <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;margin:.5rem 0;cursor:pointer">
+                            <input type="checkbox" name="gratuita"> Preview gratuito
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Adicionar aula</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.5rem">Nenhum módulo ainda. Crie o primeiro abaixo.</p>
+        {% endfor %}
+
+        <!-- Form novo módulo -->
+        <div style="border:1px dashed var(--border);border-radius:8px;padding:1.2rem;margin-top:1rem">
+            <p style="font-size:.85rem;color:var(--text2);margin-bottom:.75rem"><i class="fa fa-plus"></i> Adicionar módulo</p>
+            <form method="post" action="{% url 'instrutor_modulo_criar' curso.id %}">
+                {% csrf_token %}
+                <div class="two-col" style="gap:.75rem">
+                    <input type="text" name="titulo" class="form-control" placeholder="Nome do módulo" required style="font-size:.85rem">
+                    <input type="number" name="ordem" class="form-control" placeholder="Ordem" style="font-size:.85rem">
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.75rem"><i class="fa fa-plus"></i> Criar módulo</button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleModulo(id) {
+    const el = document.getElementById('modulo-' + id);
+    el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+</script>
+{% endblock %}
