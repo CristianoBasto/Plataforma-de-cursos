@@ -9,6 +9,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Adicione também:
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://785e-2804-6564-808e-2300-896a-352f-26e1-ebb5.ngrok-free.app',
+]
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -18,6 +24,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'cursos',
     'usuarios',
+    'pagamentos',
 ]
 
 MIDDLEWARE = [
@@ -79,3 +86,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/cursos/'
 LOGOUT_REDIRECT_URL = '/'
+
+
+# Mercado Pago
+# MERCADOPAGO_PUBLIC_KEY = 'TEST-56df9013-ae37-4c66-8bd7-5413a1378d0b'
+# MERCADOPAGO_ACCESS_TOKEN = 'TEST-7759041436498876-042921-c478f0337aee18df51e4aacb4164edc0-105652090'
+
+MERCADOPAGO_PUBLIC_KEY = 'APP_USR-6f4d7dad-1b63-4a17-8646-216ba5cb5c1d'
+MERCADOPAGO_ACCESS_TOKEN = 'APP_USR-3072387906629793-050910-a5bac765f25386525f9d7fec5d24edaa-3107430754'
+
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True

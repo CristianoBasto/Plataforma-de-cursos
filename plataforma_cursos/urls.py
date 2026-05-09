@@ -9,4 +9,5 @@ urlpatterns = [
     path('', core_views.home, name='home'),
     path('cursos/', include('cursos.urls')),
     path('usuarios/', include('usuarios.urls')),
+    path('pagamentos/', include('pagamentos.urls')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -72,9 +72,24 @@
                     </div>
                     <a href="{% url 'assistir_aula' curso.slug %}" class="btn btn-primary btn-full"><i class="fa fa-play"></i> Continuar</a>
                 {% else %}
+
+
                     {% if user.is_authenticated %}
-                        <a href="{% url 'matricular' curso.slug %}" class="btn btn-primary btn-full"><i class="fa fa-graduation-cap"></i> Matricular-se</a>
+                                            {% if curso.gratuito %}
+                            <a href="{% url 'matricular' curso.slug %}" class="btn btn-primary btn-full">
+                                <i class="fa fa-graduation-cap"></i> Matricular-se grátis
+                            </a>
+                        {% else %}
+                            <a href="{% url 'checkout' curso.slug %}" class="btn btn-primary btn-full">
+                                <i class="fa fa-shopping-cart"></i> Comprar — R$ {{ curso.preco }}
+                            </a>
+                        {% endif %}
                     {% else %}
+
+
+
+
+
                         <a href="{% url 'login' %}?next={% url 'detalhe_curso' curso.slug %}" class="btn btn-primary btn-full"><i class="fa fa-sign-in-alt"></i> Entrar para matricular</a>
                         <a href="{% url 'registro' %}" class="btn btn-outline btn-full" style="margin-top:.75rem">Criar conta grátis</a>
                     {% endif %}

@@ -1,0 +1,22 @@
+{% extends 'base/base.html' %}
+{% block title %}Pagamento Aprovado - EduPlay{% endblock %}
+
+{% block content %}
+<div style="max-width:500px;margin:5rem auto;text-align:center;padding:0 2rem">
+    <div style="font-size:4rem;color:#5cb85c;margin-bottom:1.5rem">
+        <i class="fa fa-check-circle"></i>
+    </div>
+    <h1 style="font-size:2rem;margin-bottom:1rem">Pagamento aprovado!</h1>
+    {% if curso %}
+        <p style="color:var(--text2);margin-bottom:2rem">
+            Sua matrícula no curso <strong>{{ curso.titulo }}</strong> foi realizada com sucesso!
+        </p>
+        <a href="{% url 'assistir_aula' curso.slug %}" class="btn btn-primary">
+            <i class="fa fa-play"></i> Começar agora
+        </a>
+    {% else %}
+        <p style="color:var(--text2);margin-bottom:2rem">Sua compra foi processada com sucesso!</p>
+        <a href="{% url 'meus_cursos' %}" class="btn btn-primary">Meus Cursos</a>
+    {% endif %}
+</div>
+{% endblock %}

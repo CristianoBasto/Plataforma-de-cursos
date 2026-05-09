@@ -1,0 +1,58 @@
+{% extends 'base/base.html' %}
+{% block title %}Checkout - {{ curso.titulo }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.checkout-wrap { max-width: 600px; margin: 3rem auto; padding: 0 2rem; }
+.checkout-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; }
+.checkout-box h2 { font-size: 1.4rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+.curso-resumo { display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem; padding: 1rem; background: var(--bg3); border-radius: 8px; }
+.curso-resumo img { width: 80px; height: 55px; object-fit: cover; border-radius: 6px; }
+.curso-resumo-info h3 { font-size: 1rem; margin-bottom: .3rem; }
+.curso-resumo-info p { font-size: .85rem; color: var(--text2); }
+.preco-total { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-top: 1px solid var(--border); margin-bottom: 1.5rem; }
+.preco-total span { font-size: .9rem; color: var(--text2); }
+.preco-total strong { font-size: 1.5rem; color: var(--accent); font-family: 'Syne', sans-serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="checkout-wrap">
+    <h1 style="font-size:1.8rem;margin-bottom:1.5rem">Finalizar compra</h1>
+
+    <div class="checkout-box">
+        <h2><i class="fa fa-shopping-cart"></i> Resumo do pedido</h2>
+
+        <div class="curso-resumo">
+            {% if curso.thumbnail %}
+                <img src="{{ curso.thumbnail.url }}" alt="{{ curso.titulo }}">
+            {% endif %}
+            <div class="curso-resumo-info">
+                <h3>{{ curso.titulo }}</h3>
+                <p>{{ curso.get_nivel_display }} · {{ curso.total_aulas }} aulas</p>
+            </div>
+        </div>
+
+        <div class="preco-total">
+            <span>Total</span>
+            <strong>R$ {{ curso.preco }}</strong>
+        </div>
+
+        <!-- Botão Mercado Pago -->
+        <div id="wallet_container"></div>
+    </div>
+</div>
+
+<script src="https://sdk.mercadopago.com/js/v2"></script>
+<script>
+    const mp = new MercadoPago('{{ public_key }}', { locale: 'pt-BR' });
+    mp.bricks().create('wallet', 'wallet_container', {
+        initialization: {
+            preferenceId: '{{ preference_id }}',
+        },
+        customization: {
+            texts: { valueProp: 'smart_option' },
+        },
+    });
+</script>
+{% endblock %}
