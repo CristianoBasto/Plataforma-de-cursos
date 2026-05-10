@@ -1,0 +1,34 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2>Pagamento aprovado! 💳</h2>
+<p>Olá, <strong>{{ nome }}</strong>!</p>
+<p>Seu pagamento foi processado com sucesso. Você já tem acesso ao curso!</p>
+
+<div class="highlight-box">
+    <p>📚 {{ curso_titulo }}</p>
+</div>
+
+<div class="info-grid">
+    <div class="info-item">
+        <span>Valor pago</span>
+        <strong>R$ {{ valor }}</strong>
+    </div>
+    <div class="info-item">
+        <span>Data</span>
+        <strong>{{ data }}</strong>
+    </div>
+    <div class="info-item">
+        <span>Status</span>
+        <strong style="color:#5cb85c">Aprovado ✓</strong>
+    </div>
+    <div class="info-item">
+        <span>Instrutor</span>
+        <strong>{{ instrutor }}</strong>
+    </div>
+</div>
+
+<a href="{{ url_curso }}" class="btn">Acessar Curso</a>
+
+<hr class="divider">
+<p style="font-size:13px;color:#999">Guarde este e-mail como comprovante da sua compra.</p>
+{% endblock %}

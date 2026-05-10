@@ -1,0 +1,23 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2>Parabéns! Certificado disponível 🎓</h2>
+<p>Olá, <strong>{{ nome }}</strong>!</p>
+<p>Você concluiu o curso <strong>{{ curso_titulo }}</strong> com sucesso! Seu certificado já está disponível para download.</p>
+
+<div class="highlight-box">
+    <p>🏆 Você completou 100% do curso. Parabéns pela dedicação!</p>
+</div>
+
+<div class="info-grid">
+    <div class="info-item">
+        <span>Curso</span>
+        <strong>{{ curso_titulo }}</strong>
+    </div>
+    <div class="info-item">
+        <span>Concluído em</span>
+        <strong>{{ data }}</strong>
+    </div>
+</div>
+
+<a href="{{ url_certificado }}" class="btn">Baixar Certificado</a>
+{% endblock %}

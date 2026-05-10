@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f5f5; color: #333; }
+        .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .header { background: #1a1a2e; padding: 30px 40px; text-align: center; }
+        .header h1 { color: #f4a261; font-size: 28px; font-weight: 800; }
+        .header p { color: #aaaaaa; font-size: 13px; margin-top: 4px; }
+        .accent-bar { height: 4px; background: #f4a261; }
+        .content { padding: 40px; }
+        .content h2 { color: #1a1a2e; font-size: 22px; margin-bottom: 16px; }
+        .content p { color: #555; font-size: 15px; line-height: 1.7; margin-bottom: 16px; }
+        .highlight-box { background: #f9f3ee; border-left: 4px solid #f4a261; border-radius: 6px; padding: 16px 20px; margin: 20px 0; }
+        .highlight-box p { margin: 0; color: #1a1a2e; font-weight: 500; }
+        .btn { display: inline-block; background: #f4a261; color: #ffffff !important; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 15px; margin: 20px 0; }
+        .btn:hover { background: #e8935a; }
+        .divider { border: none; border-top: 1px solid #eeeeee; margin: 24px 0; }
+        .footer { background: #1a1a2e; padding: 24px 40px; text-align: center; }
+        .footer p { color: #777; font-size: 12px; line-height: 1.6; }
+        .footer a { color: #f4a261; text-decoration: none; }
+        .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .info-item { background: #f9f9f9; border-radius: 8px; padding: 12px 16px; }
+        .info-item span { display: block; font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: .05em; }
+        .info-item strong { display: block; font-size: 14px; color: #1a1a2e; margin-top: 2px; }
+    </style>
+</head>
+<body>
+<div class="wrapper">
+    <div class="header">
+        <h1>SisPlay</h1>
+        <p>Plataforma de Cursos Online</p>
+    </div>
+    <div class="accent-bar"></div>
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+    <div class="footer">
+        <p>© 2025 SisPlay — Plataforma de Cursos Online<br>
+        Você está recebendo este e-mail porque possui uma conta na SisPlay.<br>
+        <a href="#">Cancelar inscrição</a></p>
+    </div>
+</div>
+</body>
+</html>

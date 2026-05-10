@@ -26,12 +26,41 @@ def checkout(request, slug):
 
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
 
+    # base_url = request.build_absolute_uri('/').rstrip('/')
     base_url = request.build_absolute_uri('/').rstrip('/')
+    
+    # Forçar HTTPS apenas se não for localhost
+    if not any(host in base_url for host in ['127.0.0.1', 'localhost']) and base_url.startswith('http://'):
+        base_url = base_url.replace('http://', 'https://', 1)
+    
+    print('BASE URL:', base_url)
+    
 # Forçar HTTPS para o Mercado Pago
     if base_url.startswith('http://'):
         base_url = base_url.replace('http://', 'https://', 1)
     print('BASE URL:', base_url)
 
+    # preference_data = {
+    #     "items": [
+    #         {
+    #             "title": curso.titulo,
+    #             "quantity": 1,
+    #             "currency_id": "BRL",
+    #             "unit_price": float(curso.preco),
+    #         }
+    #     ],
+    #     "payer": {
+    #         "email": request.user.email,
+    #     },
+    #     "back_urls": {
+    #         "success": f"{base_url}/pagamentos/sucesso/",
+    #         "failure": f"{base_url}/pagamentos/recusado/",
+    #         "pending": f"{base_url}/pagamentos/sucesso/",
+    #     },
+    #     "auto_return": "approved",
+    #     "external_reference": f"{request.user.id}_{curso.id}",
+    # }
+    
     preference_data = {
         "items": [
             {
@@ -44,21 +73,26 @@ def checkout(request, slug):
         "payer": {
             "email": request.user.email,
         },
+        "payment_methods": {
+            "installments": 12,
+            "default_installments": 1,
+        },
         "back_urls": {
             "success": f"{base_url}/pagamentos/sucesso/",
             "failure": f"{base_url}/pagamentos/recusado/",
             "pending": f"{base_url}/pagamentos/sucesso/",
         },
-        "auto_return": "approved",
+        "auto_return": "all",
         "external_reference": f"{request.user.id}_{curso.id}",
     }
+
     preference_response = sdk.preference().create(preference_data)
     
     # DEBUG - mostra resposta completa
-    print('=' * 50)
-    print('STATUS:', preference_response.get('status'))
-    print('RESPONSE:', preference_response.get('response'))
-    print('=' * 50)
+    # print('=' * 50)
+    # print('STATUS:', preference_response.get('status'))
+    # print('RESPONSE:', preference_response.get('response'))
+    # print('=' * 50)
 
     if preference_response.get('status') != 201:
         messages.error(request, f'Erro ao criar preferência: {preference_response.get("response")}')
@@ -86,16 +120,25 @@ def checkout(request, slug):
 
 @login_required
 def sucesso(request):
+    print('PARAMS RECEBIDOS:', dict(request.GET))
+
     payment_id = request.GET.get('payment_id')
     external_reference = request.GET.get('external_reference', '')
-    status = request.GET.get('status')
+    status = request.GET.get('status') or request.GET.get('collection_status')
+    preference_id = request.GET.get('preference_id')
+
+    # Tentar buscar pelo preference_id se não tiver external_reference
+    if not external_reference and preference_id:
+        pagamento = Pagamento.objects.filter(preference_id=preference_id).first()
+        if pagamento:
+            external_reference = f'{pagamento.aluno.id}_{pagamento.curso.id}'
+            status = 'approved'
 
     if external_reference and status == 'approved':
         try:
             user_id, curso_id = external_reference.split('_')
             curso = Curso.objects.get(id=curso_id)
 
-            # Atualizar pagamento
             pagamento = Pagamento.objects.filter(
                 aluno=request.user,
                 curso=curso
@@ -105,12 +148,22 @@ def sucesso(request):
                 pagamento.payment_id = payment_id or ''
                 pagamento.save()
 
-            # Matricular aluno
             Matricula.objects.get_or_create(aluno=request.user, curso=curso)
+
+            from core.emails import email_pagamento_aprovado
+            resultado = email_pagamento_aprovado(
+                request.user,
+                curso,
+                pagamento.valor if pagamento else curso.preco
+            )
+            print('EMAIL ENVIADO:', resultado)
+
             messages.success(request, f'Pagamento aprovado! Bem-vindo ao curso "{curso.titulo}"!')
             return render(request, 'pagamentos/sucesso.html', {'curso': curso})
-        except Exception:
-            pass
+        except Exception as e:
+            print('ERRO:', e)
+            import traceback
+            traceback.print_exc()
 
     return render(request, 'pagamentos/sucesso.html', {'curso': None})
 

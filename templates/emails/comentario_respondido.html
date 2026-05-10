@@ -1,0 +1,12 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2>Você recebeu uma resposta! 💬</h2>
+<p>Olá, <strong>{{ nome }}</strong>!</p>
+<p>O instrutor <strong>{{ instrutor }}</strong> respondeu seu comentário na aula <strong>{{ aula_titulo }}</strong>.</p>
+
+<div class="highlight-box">
+    <p>💬 "{{ resposta }}"</p>
+</div>
+
+<a href="{{ url_aula }}" class="btn">Ver Resposta</a>
+{% endblock %}

@@ -70,6 +70,8 @@ def matricular(request, slug):
     curso = get_object_or_404(Curso, slug=slug, publicado=True)
     matricula, criada = Matricula.objects.get_or_create(aluno=request.user, curso=curso)
     if criada:
+        from core.emails import email_matricula_confirmada
+        email_matricula_confirmada(request.user, curso)
         messages.success(request, f'Matrícula no curso "{curso.titulo}" realizada com sucesso!')
     else:
         messages.info(request, 'Você já está matriculado neste curso.')
@@ -132,7 +134,11 @@ def marcar_concluida(request, aula_id):
         else:
             progresso.data_conclusao = None
         progresso.save()
-    return redirect('assistir_aula_id', slug=aula.modulo.curso.slug, aula_id=aula_id)
+        matricula = Matricula.objects.filter(aluno=request.user, curso=aula.modulo.curso).first()
+        if matricula and matricula.progresso() == 100:
+            from core.emails import email_certificado_disponivel
+            email_certificado_disponivel(request.user, aula.modulo.curso)
+            return redirect('assistir_aula_id', slug=aula.modulo.curso.slug, aula_id=aula_id)
 
 
 @login_required
@@ -173,6 +179,17 @@ def comentar_aula(request, aula_id):
                 texto=texto,
                 parent_id=parent_id if parent_id else None
             )
+        if parent_id:
+            from cursos.models import Comentario
+            parent = Comentario.objects.filter(id=parent_id).first()
+            if parent and parent.aluno != request.user:
+                from core.emails import email_comentario_respondido
+                email_comentario_respondido(
+                    usuario=parent.aluno,
+                    aula=aula,
+                    resposta=texto,
+                    instrutor=request.user
+                )
             messages.success(request, 'Comentário enviado!')
     return redirect('assistir_aula_id', slug=aula.modulo.curso.slug, aula_id=aula.id)
 
@@ -196,4 +213,4 @@ def emitir_certificado(request, slug):
         return redirect('assistir_aula', slug=slug)
 
     from .certificado import gerar_certificado
-    return gerar_certificado(request.user, curso)
+    return gerar_certificado(request.user, curso, request)

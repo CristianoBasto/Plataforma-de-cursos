@@ -45,6 +45,11 @@ def registro_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+            
+            from core.emails import email_boas_vindas
+            email_boas_vindas(user)
+
+
             messages.success(request, f'Bem-vindo(a), {user.first_name}!')
             if user.profile.is_instrutor():
                 return redirect('instrutor_dashboard')
@@ -82,15 +87,84 @@ def perfil_view(request):
 @instrutor_required
 def instrutor_dashboard(request):
     from cursos.models import Curso, Matricula
+    from pagamentos.models import Pagamento
+    from django.db.models import Sum, Count
+    from django.db.models.functions import TruncMonth
+    import json
+
     cursos = Curso.objects.filter(instrutor=request.user)
     total_alunos = Matricula.objects.filter(curso__instrutor=request.user).count()
     total_publicados = cursos.filter(publicado=True).count()
+
+    # Receita total
+    receita_total = Pagamento.objects.filter(
+        curso__instrutor=request.user,
+        status='aprovado'
+    ).aggregate(total=Sum('valor'))['total'] or 0
+
+    # Receita por mês (últimos 6 meses)
+    from datetime import datetime, timedelta
+    seis_meses_atras = datetime.now() - timedelta(days=180)
+
+    receita_mensal = Pagamento.objects.filter(
+        curso__instrutor=request.user,
+        status='aprovado',
+        criado_em__gte=seis_meses_atras
+    ).annotate(
+        mes=TruncMonth('criado_em')
+    ).values('mes').annotate(
+        total=Sum('valor')
+    ).order_by('mes')
+
+    labels_receita = []
+    dados_receita = []
+    meses_pt = {
+        1: 'Jan', 2: 'Fev', 3: 'Mar', 4: 'Abr',
+        5: 'Mai', 6: 'Jun', 7: 'Jul', 8: 'Ago',
+        9: 'Set', 10: 'Out', 11: 'Nov', 12: 'Dez'
+    }
+    for item in receita_mensal:
+        labels_receita.append(f"{meses_pt[item['mes'].month]}/{item['mes'].year}")
+        dados_receita.append(float(item['total']))
+
+    # Alunos por mês (últimos 6 meses)
+    alunos_mensal = Matricula.objects.filter(
+        curso__instrutor=request.user,
+        data_matricula__gte=seis_meses_atras
+    ).annotate(
+        mes=TruncMonth('data_matricula')
+    ).values('mes').annotate(
+        total=Count('id')
+    ).order_by('mes')
+
+    labels_alunos = []
+    dados_alunos = []
+    for item in alunos_mensal:
+        labels_alunos.append(f"{meses_pt[item['mes'].month]}/{item['mes'].year}")
+        dados_alunos.append(item['total'])
+
+    # Cursos mais vendidos
+    cursos_vendidos = cursos.annotate(
+        total_matriculas=Count('matriculas'),
+        receita=Sum('pagamentos__valor', filter=__import__('django.db.models', fromlist=['Q']).Q(pagamentos__status='aprovado'))
+    ).order_by('-total_matriculas')[:5]
+
+    labels_cursos = [c.titulo[:20] + '...' if len(c.titulo) > 20 else c.titulo for c in cursos_vendidos]
+    dados_cursos = [c.total_matriculas for c in cursos_vendidos]
+
     return render(request, 'instrutor/dashboard.html', {
         'cursos': cursos,
         'total_alunos': total_alunos,
         'total_publicados': total_publicados,
+        'receita_total': receita_total,
+        'labels_receita': json.dumps(labels_receita),
+        'dados_receita': json.dumps(dados_receita),
+        'labels_alunos': json.dumps(labels_alunos),
+        'dados_alunos': json.dumps(dados_alunos),
+        'labels_cursos': json.dumps(labels_cursos),
+        'dados_cursos': json.dumps(dados_cursos),
+        'cursos_vendidos': cursos_vendidos,
     })
-
 
 @instrutor_required
 def instrutor_curso_criar(request):

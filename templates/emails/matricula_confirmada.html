@@ -1,0 +1,31 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2>Matrícula confirmada! ✅</h2>
+<p>Olá, <strong>{{ nome }}</strong>!</p>
+<p>Sua matrícula no curso abaixo foi realizada com sucesso. Bons estudos!</p>
+
+<div class="highlight-box">
+    <p>📚 {{ curso_titulo }}</p>
+</div>
+
+<div class="info-grid">
+    <div class="info-item">
+        <span>Nível</span>
+        <strong>{{ curso_nivel }}</strong>
+    </div>
+    <div class="info-item">
+        <span>Total de aulas</span>
+        <strong>{{ total_aulas }} aulas</strong>
+    </div>
+    <div class="info-item">
+        <span>Instrutor</span>
+        <strong>{{ instrutor }}</strong>
+    </div>
+    <div class="info-item">
+        <span>Data</span>
+        <strong>{{ data }}</strong>
+    </div>
+</div>
+
+<a href="{{ url_curso }}" class="btn">Começar Agora</a>
+{% endblock %}

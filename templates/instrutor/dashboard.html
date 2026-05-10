@@ -1,12 +1,23 @@
 {% extends 'base/base.html' %}
-{% block title %}Painel do Instrutor - EduPlay{% endblock %}
+{% block title %}Painel do Instrutor - SisPlay{% endblock %}
+
 {% block extra_css %}
 <style>
 .painel-header { padding: 2.5rem 0 2rem; border-bottom: 1px solid var(--border); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
-.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; text-align: center; }
-.stat-card strong { display: block; font-size: 2rem; font-family: 'Syne', sans-serif; color: var(--accent); }
-.stat-card span { font-size: .85rem; color: var(--text2); }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2.5rem; }
+.stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; }
+.stat-icon { width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.stat-icon.orange { background: rgba(255,107,53,.15); color: var(--accent); }
+.stat-icon.gold { background: rgba(255,170,0,.15); color: var(--accent2); }
+.stat-icon.green { background: rgba(92,184,92,.15); color: #5cb85c; }
+.stat-icon.blue { background: rgba(52,152,219,.15); color: #3498db; }
+.stat-info strong { display: block; font-size: 1.6rem; font-family: 'Syne', sans-serif; color: var(--text); }
+.stat-info span { font-size: .82rem; color: var(--text2); }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem; }
+.chart-box { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; }
+.chart-box h3 { font-size: 1rem; margin-bottom: 1.2rem; color: var(--text2); display: flex; align-items: center; gap: .5rem; }
+.chart-box h3 i { color: var(--accent); }
+.chart-full { grid-column: 1 / -1; }
 .curso-row { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.2rem 1.5rem; display: flex; align-items: center; gap: 1.5rem; margin-bottom: .75rem; flex-wrap: wrap; }
 .curso-row h3 { font-size: 1rem; margin-bottom: .2rem; }
 .curso-row p { font-size: .82rem; color: var(--text2); }
@@ -14,6 +25,12 @@
 .badge-status { padding: .25rem .6rem; border-radius: 4px; font-size: .75rem; font-weight: 600; }
 .badge-pub { background: rgba(92,184,92,.15); color: #5cb85c; }
 .badge-rascunho { background: rgba(153,153,153,.15); color: var(--text2); }
+.ranking-item { display: flex; align-items: center; gap: 1rem; padding: .75rem 0; border-bottom: 1px solid var(--border); }
+.ranking-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,107,53,.15); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: .85rem; flex-shrink: 0; }
+.ranking-info { flex: 1; }
+.ranking-info span { display: block; font-size: .82rem; color: var(--text2); }
+.ranking-matriculas { font-size: .9rem; font-weight: 600; color: var(--accent); }
+@media(max-width:768px){ .charts-grid { grid-template-columns: 1fr; } .chart-full { grid-column: 1; } }
 </style>
 {% endblock %}
 
@@ -22,30 +39,94 @@
     <div class="painel-header">
         <div>
             <h1>Painel do Instrutor</h1>
-            <p style="color:var(--text2);margin-top:.3rem">Olá, {{ request.user.first_name }}! Gerencie seus cursos aqui.</p>
+            <p style="color:var(--text2);margin-top:.3rem">Olá, {{ request.user.first_name }}! Aqui está o desempenho dos seus cursos.</p>
         </div>
         <a href="{% url 'instrutor_curso_criar' %}" class="btn btn-primary">
             <i class="fa fa-plus"></i> Novo Curso
         </a>
     </div>
 
+    <!-- STATS -->
     <div class="stats-grid">
         <div class="stat-card">
-            <strong>{{ cursos.count }}</strong>
-            <span>Cursos criados</span>
+            <div class="stat-icon orange"><i class="fa fa-graduation-cap"></i></div>
+            <div class="stat-info">
+                <strong>{{ cursos.count }}</strong>
+                <span>Cursos criados</span>
+            </div>
         </div>
         <div class="stat-card">
-            <strong>{{ total_publicados }}</strong>
-            <span>Publicados</span>
+            <div class="stat-icon green"><i class="fa fa-check-circle"></i></div>
+            <div class="stat-info">
+                <strong>{{ total_publicados }}</strong>
+                <span>Publicados</span>
+            </div>
         </div>
         <div class="stat-card">
-            <strong>{{ total_alunos }}</strong>
-            <span>Total de alunos</span>
+            <div class="stat-icon blue"><i class="fa fa-users"></i></div>
+            <div class="stat-info">
+                <strong>{{ total_alunos }}</strong>
+                <span>Total de alunos</span>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon gold"><i class="fa fa-dollar-sign"></i></div>
+            <div class="stat-info">
+                <strong>R$ {{ receita_total }}</strong>
+                <span>Receita total</span>
+            </div>
         </div>
     </div>
 
-    <h2 style="font-size:1.3rem;margin-bottom:1rem">Meus Cursos</h2>
+    <!-- GRÁFICOS -->
+    <div class="charts-grid">
 
+        <!-- Receita mensal -->
+        <div class="chart-box">
+            <h3><i class="fa fa-chart-line"></i> Receita dos últimos 6 meses</h3>
+            <canvas id="graficoReceita" height="200"></canvas>
+        </div>
+
+        <!-- Alunos por mês -->
+        <div class="chart-box">
+            <h3><i class="fa fa-user-graduate"></i> Novos alunos por mês</h3>
+            <canvas id="graficoAlunos" height="200"></canvas>
+        </div>
+
+        <!-- Cursos mais vendidos -->
+        <div class="chart-box chart-full">
+            <h3><i class="fa fa-trophy"></i> Cursos mais matriculados</h3>
+            <canvas id="graficoCursos" height="100"></canvas>
+        </div>
+
+    </div>
+
+    <!-- RANKING CURSOS -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem">
+        <div class="chart-box">
+            <h3><i class="fa fa-medal"></i> Ranking de cursos</h3>
+            {% for curso in cursos_vendidos %}
+            <div class="ranking-item">
+                <div class="ranking-num">{{ forloop.counter }}</div>
+                <div class="ranking-info">
+                    <strong>{{ curso.titulo|truncatechars:30 }}</strong>
+                    <span>{{ curso.get_nivel_display }}</span>
+                </div>
+                <div class="ranking-matriculas">{{ curso.total_matriculas }} alunos</div>
+            </div>
+            {% empty %}
+            <p style="color:var(--text2);font-size:.9rem">Nenhum curso ainda.</p>
+            {% endfor %}
+        </div>
+
+        <div class="chart-box">
+            <h3><i class="fa fa-chart-pie"></i> Receita por curso</h3>
+            <canvas id="graficoReceita2" height="220"></canvas>
+        </div>
+    </div>
+
+    <!-- LISTA DE CURSOS -->
+    <h2 style="font-size:1.3rem;margin-bottom:1rem">Meus Cursos</h2>
     {% for curso in cursos %}
     <div class="curso-row">
         <div style="flex:1">
@@ -74,4 +155,125 @@
     </div>
     {% endfor %}
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const accent = '#ff6b35';
+const accent2 = '#ffaa00';
+const green = '#5cb85c';
+const blue = '#3498db';
+const grid = 'rgba(255,255,255,0.05)';
+const textColor = '#999';
+
+Chart.defaults.color = textColor;
+Chart.defaults.borderColor = grid;
+
+// Gráfico Receita Mensal
+new Chart(document.getElementById('graficoReceita'), {
+    type: 'line',
+    data: {
+        labels: {{ labels_receita|safe }},
+        datasets: [{
+            label: 'Receita (R$)',
+            data: {{ dados_receita|safe }},
+            borderColor: accent,
+            backgroundColor: 'rgba(255,107,53,0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4,
+            pointBackgroundColor: accent,
+            pointRadius: 4,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: grid } },
+            x: { grid: { color: grid } }
+        }
+    }
+});
+
+// Gráfico Alunos por Mês
+new Chart(document.getElementById('graficoAlunos'), {
+    type: 'bar',
+    data: {
+        labels: {{ labels_alunos|safe }},
+        datasets: [{
+            label: 'Novos alunos',
+            data: {{ dados_alunos|safe }},
+            backgroundColor: 'rgba(52,152,219,0.7)',
+            borderColor: blue,
+            borderWidth: 1,
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: grid } },
+            x: { grid: { color: grid } }
+        }
+    }
+});
+
+// Gráfico Cursos mais matriculados
+new Chart(document.getElementById('graficoCursos'), {
+    type: 'bar',
+    data: {
+        labels: {{ labels_cursos|safe }},
+        datasets: [{
+            label: 'Matrículas',
+            data: {{ dados_cursos|safe }},
+            backgroundColor: [
+                'rgba(255,107,53,0.7)',
+                'rgba(255,170,0,0.7)',
+                'rgba(92,184,92,0.7)',
+                'rgba(52,152,219,0.7)',
+                'rgba(155,89,182,0.7)',
+            ],
+            borderRadius: 6,
+        }]
+    },
+    options: {
+        responsive: true,
+        indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { beginAtZero: true, grid: { color: grid } },
+            y: { grid: { color: grid } }
+        }
+    }
+});
+
+// Gráfico Receita por Curso (pizza)
+new Chart(document.getElementById('graficoReceita2'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ labels_cursos|safe }},
+        datasets: [{
+            data: {{ dados_cursos|safe }},
+            backgroundColor: [
+                'rgba(255,107,53,0.8)',
+                'rgba(255,170,0,0.8)',
+                'rgba(92,184,92,0.8)',
+                'rgba(52,152,219,0.8)',
+                'rgba(155,89,182,0.8)',
+            ],
+            borderWidth: 0,
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+                labels: { padding: 12, font: { size: 11 } }
+            }
+        }
+    }
+});
+</script>
 {% endblock %}

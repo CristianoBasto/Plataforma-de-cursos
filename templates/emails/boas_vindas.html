@@ -1,0 +1,15 @@
+{% extends 'emails/base_email.html' %}
+{% block content %}
+<h2>Bem-vindo(a) à SisPlay! 🎉</h2>
+<p>Olá, <strong>{{ nome }}</strong>!</p>
+<p>Ficamos muito felizes em ter você aqui. Sua conta foi criada com sucesso e você já pode começar a aprender.</p>
+
+<div class="highlight-box">
+    <p>🎓 Explore nosso catálogo de cursos e comece sua jornada de aprendizado hoje mesmo!</p>
+</div>
+
+<a href="{{ url_cursos }}" class="btn">Ver Cursos Disponíveis</a>
+
+<hr class="divider">
+<p style="font-size:13px;color:#999">Se você não criou esta conta, ignore este e-mail.</p>
+{% endblock %}
