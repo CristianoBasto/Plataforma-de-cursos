@@ -75,16 +75,25 @@ class Aula(models.Model):
     modulo = models.ForeignKey(Modulo, on_delete=models.CASCADE, related_name='aulas')
     titulo = models.CharField(max_length=200)
     descricao = models.TextField(blank=True)
-    video_url = models.URLField(blank=True)
+    video_url = models.URLField(blank=True, help_text='URL externa (YouTube, Vimeo, Google Drive)')
+    video_file = models.FileField(upload_to='aulas/videos/', blank=True, null=True, help_text='Upload de vídeo direto')
     duracao = models.PositiveIntegerField(default=0, help_text='Duração em segundos')
     ordem = models.PositiveIntegerField(default=0)
     gratuita = models.BooleanField(default=False, help_text='Aula de preview gratuita')
     criada_em = models.DateTimeField(auto_now_add=True)
+    apostila = models.FileField(upload_to='aulas/apostilas/', blank=True, null=True, help_text='Material de apoio em PDF')
 
     def duracao_formatada(self):
         minutos = self.duracao // 60
         segundos = self.duracao % 60
         return f'{minutos:02d}:{segundos:02d}'
+
+    def get_video(self):
+        if self.video_file:
+            return ('file', self.video_file.url)
+        elif self.video_url:
+            return ('url', self.video_url)
+        return (None, None)
 
     def __str__(self):
         return self.titulo

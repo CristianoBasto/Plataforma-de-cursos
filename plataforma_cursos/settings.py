@@ -117,3 +117,7 @@ SITE_URL = 'http://127.0.0.1:8000'  # trocar pelo domínio em produção
 
 print('EMAIL USER:', EMAIL_HOST_USER)
 print('EMAIL PASS:', EMAIL_HOST_PASSWORD)
+
+# Upload de vídeos
+DATA_UPLOAD_MAX_MEMORY_SIZE = 524288000   # 500MB
+FILE_UPLOAD_MAX_MEMORY_SIZE = 524288000   # 500MB

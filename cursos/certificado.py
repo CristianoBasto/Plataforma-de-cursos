@@ -55,7 +55,7 @@ def gerar_certificado(usuario, curso, request=None):
     # ─── NOME DA PLATAFORMA ───
     c.setFillColor(colors.white)
     c.setFont('Helvetica-Bold', 32)
-    c.drawCentredString(largura / 2, altura - 70, 'SisPlay')
+    c.drawCentredString(largura / 2, altura - 70, 'XisPlay')
 
     c.setFillColor(colors.HexColor('#f4a261'))
     c.setFont('Helvetica', 13)
@@ -77,7 +77,7 @@ def gerar_certificado(usuario, curso, request=None):
     c.drawCentredString(largura / 2, altura - 210, 'Certificamos que')
 
     # ─── NOME DO ALUNO ───
-    nome = usuario.get_full_name() or usuario.username
+    nome = (usuario.get_full_name().title()) or (usuario.username.title())
     c.setFillColor(colors.HexColor('#1a1a2e'))
     c.setFont('Helvetica-Bold', 36)
     c.drawCentredString(largura / 2, altura - 260, nome)
@@ -122,7 +122,7 @@ def gerar_certificado(usuario, curso, request=None):
     c.line(100, 100, 280, 100)
     c.setFillColor(colors.HexColor('#1a1a2e'))
     c.setFont('Helvetica-Bold', 11)
-    c.drawCentredString(190, 85, 'SisPlay')
+    c.drawCentredString(190, 85, 'XisPlay')
     c.setFillColor(colors.HexColor('#777777'))
     c.setFont('Helvetica', 10)
     c.drawCentredString(190, 72, 'Plataforma de Cursos Online')

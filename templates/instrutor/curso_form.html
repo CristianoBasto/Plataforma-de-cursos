@@ -1,5 +1,5 @@
 {% extends 'base/base.html' %}
-{% block title %}{% if curso %}Editar{% else %}Novo{% endif %} Curso - EduPlay{% endblock %}
+{% block title %}{% if curso %}Editar{% else %}Novo{% endif %} Curso - XisPlay{% endblock %}
 {% block extra_css %}
 <style>
 .form-wrap { max-width: 800px; margin: 2.5rem auto; padding: 0 2rem; }
@@ -13,6 +13,7 @@
 .toggle-modulo { background: none; border: none; color: var(--text2); cursor: pointer; font-size: .85rem; }
 </style>
 {% endblock %}
+
 {% block content %}
 <div class="form-wrap">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
@@ -70,12 +71,13 @@
                 <input type="file" name="thumbnail" class="form-control" accept="image/*">
                 {% if curso.thumbnail %}<small style="color:var(--text2)">Atual: {{ curso.thumbnail.name }}</small>{% endif %}
             </div>
+            
+
             <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Salvar</button>
         </form>
     </div>
 
     {% if curso %}
-    <!-- MÓDULOS E AULAS -->
     <div class="form-box">
         <h2><i class="fa fa-layer-group"></i> Módulos e Aulas</h2>
 
@@ -104,23 +106,65 @@
                 </div>
                 {% endfor %}
 
-                <!-- Form nova aula -->
-                <div style="padding:1rem;border-top:1px solid var(--border);background:rgba(255,107,53,.03)">
-                    <form method="post" action="{% url 'instrutor_aula_criar' modulo.id %}">
+                <div style="padding:1rem;border-top:1px solid var(--border);background:rgba(244,162,97,.03)">
+                    <form method="post" action="{% url 'instrutor_aula_criar' modulo.id %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <p style="font-size:.82rem;color:var(--text2);margin-bottom:.75rem"><i class="fa fa-plus"></i> Nova aula</p>
                         <div class="two-col" style="gap:.75rem">
                             <input type="text" name="titulo" class="form-control" placeholder="Título da aula" required style="font-size:.85rem">
-                            <input type="url" name="video_url" class="form-control" placeholder="URL do vídeo (embed)" style="font-size:.85rem">
-                        </div>
-                        <div class="two-col" style="gap:.75rem;margin-top:.5rem">
-                            <input type="number" name="duracao" class="form-control" placeholder="Duração (seg)" style="font-size:.85rem">
                             <input type="number" name="ordem" class="form-control" placeholder="Ordem" style="font-size:.85rem">
                         </div>
-                        <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;margin:.5rem 0;cursor:pointer">
-                            <input type="checkbox" name="gratuita"> Preview gratuito
-                        </label>
-                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i> Adicionar aula</button>
+
+                        <div style="margin:.75rem 0">
+                            <p style="font-size:.82rem;color:var(--text2);margin-bottom:.5rem">Tipo de vídeo:</p>
+                            <div style="display:flex;gap:1rem">
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem">
+                                    <input type="radio" name="tipo_video" value="upload" checked onchange="toggleTipoVideo(this.value, {{ modulo.id }})"> Upload direto
+                                </label>
+                                <label style="display:flex;align-items:center;gap:.4rem;cursor:pointer;font-size:.85rem">
+                                    <input type="radio" name="tipo_video" value="url" onchange="toggleTipoVideo(this.value, {{ modulo.id }})"> Link externo
+                                </label>
+                            </div>
+                        </div>
+
+                        <div id="campo-upload-{{ modulo.id }}" style="margin-bottom:.5rem">
+                            <input type="file" name="video_file" class="form-control" accept="video/*" style="font-size:.85rem">
+                            <small style="color:var(--text2);font-size:.75rem">Formatos aceitos: MP4, AVI, MOV, MKV (máx. 500MB)</small>
+                        </div>
+
+                        <div id="campo-url-{{ modulo.id }}" style="display:none;margin-bottom:.5rem">
+                            <input type="url" name="video_url" class="form-control" placeholder="URL embed do vídeo" style="font-size:.85rem">
+                            <small style="color:var(--text2);font-size:.75rem">Ex: https://drive.google.com/file/d/ID/preview</small>
+                        </div>
+
+                        <div class="two-col" style="gap:.75rem;margin-top:.5rem">
+                            <input type="number" name="duracao" class="form-control" placeholder="Duração (seg)" style="font-size:.85rem">
+                            <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;cursor:pointer">
+                                <input type="checkbox" name="gratuita"> Preview gratuito
+                            </label>
+                        </div>
+                        <!-- Apostila -->
+                        <div style="margin-top:.75rem">
+                            <p style="font-size:.82rem;color:var(--text2);margin-bottom:.4rem">
+                                <i class="fa fa-file-pdf" style="color:#e74c3c"></i> Apostila (opcional)
+                            </p>
+                            <input type="file" name="apostila" class="form-control" accept=".pdf" style="font-size:.85rem">
+                            <small style="color:var(--text2);font-size:.75rem">Apenas PDF — material de apoio para o aluno</small>
+                        </div>
+
+
+
+                        <div id="progress-{{ modulo.id }}" style="display:none;margin-top:.75rem">
+                            <p style="font-size:.8rem;color:var(--text2);margin-bottom:.3rem">Enviando vídeo...</p>
+                            <div class="progress">
+                                <div class="progress-bar" id="progress-bar-{{ modulo.id }}" style="width:0%"></div>
+                            </div>
+                            <p id="progress-text-{{ modulo.id }}" style="font-size:.75rem;color:var(--text2);margin-top:.3rem">0%</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm" style="margin-top:.75rem" id="btn-submit-{{ modulo.id }}">
+                            <i class="fa fa-plus"></i> Adicionar aula
+                        </button>
                     </form>
                 </div>
             </div>
@@ -129,7 +173,6 @@
         <p style="color:var(--text2);font-size:.9rem;margin-bottom:1.5rem">Nenhum módulo ainda. Crie o primeiro abaixo.</p>
         {% endfor %}
 
-        <!-- Form novo módulo -->
         <div style="border:1px dashed var(--border);border-radius:8px;padding:1.2rem;margin-top:1rem">
             <p style="font-size:.85rem;color:var(--text2);margin-bottom:.75rem"><i class="fa fa-plus"></i> Adicionar módulo</p>
             <form method="post" action="{% url 'instrutor_modulo_criar' curso.id %}">
@@ -150,5 +193,63 @@ function toggleModulo(id) {
     const el = document.getElementById('modulo-' + id);
     el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
+
+function toggleTipoVideo(tipo, moduloId) {
+    const uploadDiv = document.getElementById('campo-upload-' + moduloId);
+    const urlDiv = document.getElementById('campo-url-' + moduloId);
+    if (tipo === 'upload') {
+        uploadDiv.style.display = 'block';
+        urlDiv.style.display = 'none';
+    } else {
+        uploadDiv.style.display = 'none';
+        urlDiv.style.display = 'block';
+    }
+}
+
+document.querySelectorAll('form[enctype="multipart/form-data"]').forEach(form => {
+    form.addEventListener('submit', function(e) {
+        const fileInput = form.querySelector('input[type="file"]');
+        if (!fileInput || !fileInput.files.length) return;
+
+        const moduloId = form.action.match(/\/(\d+)\/aula\//)?.[1];
+        if (!moduloId) return;
+
+        e.preventDefault();
+
+        const progressDiv = document.getElementById(`progress-${moduloId}`);
+        const progressBar = document.getElementById(`progress-bar-${moduloId}`);
+        const progressText = document.getElementById(`progress-text-${moduloId}`);
+        const btnSubmit = document.getElementById(`btn-submit-${moduloId}`);
+
+        progressDiv.style.display = 'block';
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<i class="fa fa-spinner fa-spin"></i> Enviando...';
+
+        const formData = new FormData(form);
+        const xhr = new XMLHttpRequest();
+
+        xhr.upload.addEventListener('progress', function(e) {
+            if (e.lengthComputable) {
+                const percent = Math.round((e.loaded / e.total) * 100);
+                progressBar.style.width = percent + '%';
+                progressText.textContent = `${percent}% — ${(e.loaded / 1024 / 1024).toFixed(1)}MB de ${(e.total / 1024 / 1024).toFixed(1)}MB`;
+            }
+        });
+
+        xhr.addEventListener('load', function() {
+            if (xhr.status === 200 || xhr.status === 302) {
+                window.location.reload();
+            }
+        });
+
+        xhr.addEventListener('error', function() {
+            btnSubmit.disabled = false;
+            progressDiv.style.display = 'none';
+        });
+
+        xhr.open('POST', form.action);
+        xhr.send(formData);
+    });
+});
 </script>
 {% endblock %}

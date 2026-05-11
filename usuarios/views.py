@@ -8,6 +8,8 @@ from .forms import RegistroForm, PerfilForm
 from functools import wraps
 
 
+
+
 def instrutor_required(view_func):
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
@@ -249,10 +251,13 @@ def instrutor_aula_criar(request, modulo_id):
         titulo = request.POST.get('titulo')
         descricao = request.POST.get('descricao', '')
         video_url = request.POST.get('video_url', '')
+        video_file = request.FILES.get('video_file')
         duracao = request.POST.get('duracao', 0)
         ordem = request.POST.get('ordem', 0)
         gratuita = request.POST.get('gratuita') == 'on'
-        Aula.objects.create(
+        apostila = request.FILES.get('apostila')
+        
+        aula = Aula.objects.create(
             modulo=modulo,
             titulo=titulo,
             descricao=descricao,
@@ -261,6 +266,16 @@ def instrutor_aula_criar(request, modulo_id):
             ordem=ordem,
             gratuita=gratuita,
         )
+
+        if video_file:
+            aula.video_file = video_file
+            aula.save()
+        
+
+        if apostila:
+            aula.apostila = apostila
+            aula.save()
+
         messages.success(request, 'Aula criada!')
     return redirect('instrutor_curso_editar', curso_id=modulo.curso.id)
 
@@ -269,8 +284,15 @@ def instrutor_aula_criar(request, modulo_id):
 def instrutor_aula_deletar(request, aula_id):
     from cursos.models import Aula
     from django.shortcuts import get_object_or_404
+    import os
     aula = get_object_or_404(Aula, id=aula_id, modulo__curso__instrutor=request.user)
     curso_id = aula.modulo.curso.id
+
+    # Deletar arquivo de vídeo se existir
+    if aula.video_file:
+        if os.path.isfile(aula.video_file.path):
+            os.remove(aula.video_file.path)
+
     aula.delete()
     messages.success(request, 'Aula removida!')
     return redirect('instrutor_curso_editar', curso_id=curso_id)

@@ -124,9 +124,10 @@ def assistir_aula(request, slug, aula_id=None):
 
 @login_required
 def marcar_concluida(request, aula_id):
+    aula = get_object_or_404(Aula, id=aula_id)
+    matricula = get_object_or_404(Matricula, aluno=request.user, curso=aula.modulo.curso, ativa=True)
+    
     if request.method == 'POST':
-        aula = get_object_or_404(Aula, id=aula_id)
-        matricula = get_object_or_404(Matricula, aluno=request.user, curso=aula.modulo.curso, ativa=True)
         progresso, criado = Progresso.objects.get_or_create(aluno=request.user, aula=aula)
         progresso.concluida = not progresso.concluida
         if progresso.concluida:
@@ -134,12 +135,14 @@ def marcar_concluida(request, aula_id):
         else:
             progresso.data_conclusao = None
         progresso.save()
-        matricula = Matricula.objects.filter(aluno=request.user, curso=aula.modulo.curso).first()
-        if matricula and matricula.progresso() == 100:
+
+        # Verificar se concluiu o curso
+        matricula_obj = Matricula.objects.filter(aluno=request.user, curso=aula.modulo.curso).first()
+        if matricula_obj and matricula_obj.progresso() == 100:
             from core.emails import email_certificado_disponivel
             email_certificado_disponivel(request.user, aula.modulo.curso)
-            return redirect('assistir_aula_id', slug=aula.modulo.curso.slug, aula_id=aula_id)
 
+    return redirect('assistir_aula_id', slug=aula.modulo.curso.slug, aula_id=aula_id)
 
 @login_required
 def meus_cursos(request):
